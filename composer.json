@@ -1,0 +1,20 @@
+{
+    "name": "Alexschwarz89/EasyMysqliFulltext",
+    "type": "library",
+    "description": "An easy-to-use Library to perform ranked MYSQLi fulltext searches",
+    "keywords": ["search", "mysqli", "fulltext", "fulltext search"],
+    "authors": [
+        {
+            "name": "Alex Schwarz",
+            "email": "alexschwarz@live.de"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.3.3",
+        "aura/sqlquery": "2.4.2"
+    },
+    "autoload": {
+      "psr-4": {"Alexschwarz89\\EasyMysqliFulltext\\": "src/"}
+    }
+}
