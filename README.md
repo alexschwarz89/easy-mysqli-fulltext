@@ -17,6 +17,8 @@ Run `composer install`.
 
 ## Getting Started
 
+You will find a example file in examples/index.php to use with the included testdata.sql.
+
 #### Set up search on a existing MYSQLi connection
 ```php
 use \Alexschwarz89\EasyMysqliFulltext\Search;
