@@ -57,3 +57,7 @@ $query->setTable('testdata')
 
 Contributing is surely allowed! :-)
 
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/alexschwarz89/easy-mysqli-fulltext/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
