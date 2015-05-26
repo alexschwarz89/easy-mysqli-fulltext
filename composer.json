@@ -1,5 +1,5 @@
 {
-    "name": "Alexschwarz89/EasyMysqliFulltext",
+    "name": "alexschwarz89/easy-mysqli-fulltext",
     "type": "library",
     "description": "An easy-to-use Library to perform ranked MYSQLi fulltext searches",
     "keywords": ["search", "mysqli", "fulltext", "fulltext search"],
