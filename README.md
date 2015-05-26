@@ -15,9 +15,15 @@ Install via [composer](https://getcomposer.org):
 
 Run `composer install`.
 
-## Example usage of the Query Builder
+## Getting Started
 
-#### Search table "testdata" for all rows that contain "example" in field "description"
+#### Set up search on a existing MYSQLi connection
+```php
+use \Alexschwarz89\EasyMysqliFulltext\Search;
+$search = new Search( $mysqliInstance );
+```
+
+#### Simply searching for "example" in our testdata
 
 ```php
 $query = new SearchQuery($search);
@@ -28,4 +34,24 @@ $query->setTable('testdata')
 $search->setSearchQuery( $query );
 $search->execute();
 ```
+
+## You can also
+
+#### Use Search without an existing MYSQLi connection
+```php
+$search = Search::createWithMYSQLi('localhost', 'username', 'password', 'dbname');
+```
+
+#### Build more complex search queries
+```php
+$query->setTable('testdata') 
+    ->setSearchFields('description,title,isbn,author')
+    ->mustInclude('example')
+    ->canInclude('another')
+    ->exclude('again')
+    ->preferWithout('this')
+    ->orderBy('some_field', 'ASC');
+```
+
+Contributing is surely allowed! :-)
 
