@@ -61,11 +61,10 @@ class Search
     public static function createWithMYSQLi($host, $user, $password, $database)
     {
         $db = new \mysqli($host, $user, $password, $database);
-        if (!$db->connect_errno) {
-            return new self($db);
-        } else {
+        if ($db->connect_errno) {
             throw new \Exception('Failed to connect to MySQL', $db->connect_errno);
         }
+        return new self($db);
     }
 
     /**
@@ -90,12 +89,12 @@ class Search
         $query  = $this->searchQuery;
         $result = $this->db->query($query);
 
-        if ($result) {
-            $this->searchResult = $result->fetch_all(MYSQLI_ASSOC);
-            $this->numRows      = count($this->searchResult);
-            return $this->searchResult;
-        } else {
+        if (!$result) {
             throw new \Exception('No valid result from Database, Error: ' . $this->db->error, $this->db->errno);
-        }
+        }   
+    
+        $this->searchResult = $result->fetch_all(MYSQLI_ASSOC);
+        $this->numRows      = count($this->searchResult);
+        return $this->searchResult;
     }
 }
