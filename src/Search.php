@@ -1,6 +1,9 @@
 <?php
 
 namespace Alexschwarz89\EasyMysqliFulltext;
+use Alexschwarz89\EasyMysqliFulltext\Exception\ConnectionFailedException;
+use Alexschwarz89\EasyMysqliFulltext\Exception\QueryFailedException;
+
 /**
  * Class Search
  *
@@ -62,7 +65,7 @@ class Search
     {
         $db = new \mysqli($host, $user, $password, $database);
         if ($db->connect_errno) {
-            throw new \Exception('Failed to connect to MySQL', $db->connect_errno);
+            throw new ConnectionFailedException('Failed to connect to MySQL', $db->connect_errno);
         }
         return new self($db);
     }
@@ -90,9 +93,9 @@ class Search
         $result = $this->db->query($query);
 
         if (!$result) {
-            throw new \Exception('No valid result from Database, Error: ' . $this->db->error, $this->db->errno);
-        }   
-    
+            throw new QueryFailedException('No valid result from Database, Error: ' . $this->db->error, $this->db->errno);
+        }
+
         $this->searchResult = $result->fetch_all(MYSQLI_ASSOC);
         $this->numRows      = count($this->searchResult);
         return $this->searchResult;
