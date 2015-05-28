@@ -160,6 +160,42 @@ class SearchQuery
     }
 
     /**
+     * Increases the word's contribution to the relevance value that is assigned to a row
+     *
+     * @param $term
+     * @return $this
+     */
+    public function rankHigher($term)
+    {
+        $this->addCondition('>', $term);
+        return $this;
+    }
+
+    /**
+     * Decreases the word's contribution to the relevance value that is assigned to a row
+     *
+     * @param $term
+     * @return $this
+     */
+    public function rankLower($term)
+    {
+        $this->addCondition('<', $term);
+        return $this;
+    }
+
+    /**
+     * Does only match rows that contain the phrase literally, as it was typed.
+     * (e.g. "some words" would match "some words of wisdom" but not "some noise words")
+     *
+     * @param $term
+     */
+    public function mustContainPhrase($term)
+    {
+        $this->addCondition('"', $term, '"');
+        return $this;
+    }
+
+    /**
      * If you want to change the default behaviour to rank by relevance
      * you can specify an order by string here (e.g. 'title')
      *
@@ -177,14 +213,16 @@ class SearchQuery
     /**
      * Adds a condition which will be composed later
      *
-     * @param $operator
-     * @param null $value
+     * @param String $prefix
+     * @param String $value
+     * @param String $suffix optional
      */
-    protected function addCondition($operator, $value=null) {
-        $this->searchConditions[] = [
+    protected function addCondition($prefix, $value, $suffix=null) {
+        $this->searchConditions[] = array(
             'value' => $value,
-            'operator' => $operator
-        ];
+            'prefix' => $prefix,
+            'suffix' => $suffix
+        );
     }
 
 
@@ -198,7 +236,7 @@ class SearchQuery
         $terms = '';
 
         foreach ($this->searchConditions as $condition) {
-            $terms .= $condition['operator'] . $condition['value'] . ' ';
+            $terms .= $condition['prefix'] . $condition['value'] . $condition['suffix'] . ' ';
         }
 
         return $terms;

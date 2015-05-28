@@ -1,6 +1,7 @@
 {
-    "name": "alexschwarz89/easy-mysqli-fulltext",
-    "type": "library",
+  "name": "alexschwarz89/easy-mysqli-fulltext",
+  "type": "library",
+    "license": "MIT",
     "description": "An easy-to-use Library to perform ranked MYSQLi fulltext searches",
     "keywords": ["search", "mysqli", "fulltext", "fulltext search"],
     "authors": [
