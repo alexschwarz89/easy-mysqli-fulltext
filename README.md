@@ -1,6 +1,9 @@
 # EasyMysqliFulltext
 An easy-to-use Library to perform ranked fulltext searches with MYSQLi.
 
+[![Latest Stable Version](https://poser.pugx.org/alexschwarz89/easy-mysqli-fulltext/v/stable)](https://packagist.org/packages/alexschwarz89/easy-mysqli-fulltext)
+[![License](https://poser.pugx.org/alexschwarz89/easy-mysqli-fulltext/license)](https://packagist.org/packages/alexschwarz89/easy-mysqli-fulltext)
+
 ## Install
 
 Install via [composer](https://getcomposer.org):
@@ -56,8 +59,3 @@ $query->setTable('testdata')
 ```
 
 Contributing is surely allowed! :-)
-
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/alexschwarz89/easy-mysqli-fulltext/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
