@@ -1,6 +1,7 @@
 # EasyMysqliFulltext
 An easy-to-use Library to perform ranked fulltext searches with MYSQLi.
 
+[![SensioLabsInsight](https://insight.sensiolabs.com/projects/615491a8-2afb-423e-ba36-8d7ed820b8ee/mini.png)](https://insight.sensiolabs.com/projects/615491a8-2afb-423e-ba36-8d7ed820b8ee)
 [![Latest Stable Version](https://poser.pugx.org/alexschwarz89/easy-mysqli-fulltext/v/stable)](https://packagist.org/packages/alexschwarz89/easy-mysqli-fulltext)
 [![License](https://poser.pugx.org/alexschwarz89/easy-mysqli-fulltext/license)](https://packagist.org/packages/alexschwarz89/easy-mysqli-fulltext)
 
