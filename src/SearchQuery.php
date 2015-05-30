@@ -1,7 +1,6 @@
 <?php
 
 namespace Alexschwarz89\EasyMysqliFulltext;
-use Alexschwarz89\EasyMysqliFulltext\Exception\IncompleteQueryException;
 use Alexschwarz89\EasyMysqliFulltext\Exception\QueryValidationException;
 use Aura\SqlQuery\QueryFactory;
 
