@@ -3,6 +3,7 @@
 namespace Alexschwarz89\EasyMysqliFulltext;
 use Alexschwarz89\EasyMysqliFulltext\Exception\ConnectionFailedException;
 use Alexschwarz89\EasyMysqliFulltext\Exception\QueryFailedException;
+use Alexschwarz89\EasyMysqliFulltext\Exception\QueryValidationException;
 
 /**
  * Class Search
@@ -81,6 +82,20 @@ class Search
     }
 
     /**
+     * Checks if a search query is set and if this query validates
+     *
+     * @throws QueryValidationException
+     */
+    public function validate()
+    {
+        if (!$this->searchQuery instanceof SearchQuery) {
+            throw new QueryValidationException('Must set a search query.');
+        }
+
+        $this->searchQuery->validate();
+    }
+
+    /**
      * Performs the actual query on the database and returns the results
      * as an associative array. If there a no results, returns an empty array.
      *
@@ -89,7 +104,9 @@ class Search
      */
     public function execute()
     {
-        $query  = $this->searchQuery;
+        $this->validate();
+
+        $query = $this->searchQuery;
         $result = $this->db->query($query);
 
         if (!$result) {
@@ -97,7 +114,7 @@ class Search
         }
 
         $this->searchResult = $result->fetch_all(MYSQLI_ASSOC);
-        $this->numRows      = count($this->searchResult);
+        $this->numRows = count($this->searchResult);
         return $this->searchResult;
     }
 }

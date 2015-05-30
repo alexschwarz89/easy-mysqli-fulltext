@@ -1,6 +1,8 @@
 <?php
 
 namespace Alexschwarz89\EasyMysqliFulltext;
+use Alexschwarz89\EasyMysqliFulltext\Exception\IncompleteQueryException;
+use Alexschwarz89\EasyMysqliFulltext\Exception\QueryValidationException;
 use Aura\SqlQuery\QueryFactory;
 
 /**
@@ -34,6 +36,13 @@ class SearchQuery
      * @var null
      */
     private $searchConditions    = null;
+
+    /**
+     * Additional where conditions as an array
+     *
+     * @var Array
+     */
+    private $whereConditions    = array();
     /**
      * If set to 'relevance' will automatically select the relevance
      * and does everything for you.
@@ -188,10 +197,24 @@ class SearchQuery
      * (e.g. "some words" would match "some words of wisdom" but not "some noise words")
      *
      * @param $term
+     * @return $this
      */
     public function mustContainPhrase($term)
     {
         $this->addCondition('"', $term, '"');
+        return $this;
+    }
+
+    /**
+     * Add a additional where condition as string
+     * can be called multiple times
+     *
+     * @param String $cond
+     * @return $this
+     */
+    public function addWhere($cond)
+    {
+        $this->whereConditions[] = $cond;
         return $this;
     }
 
@@ -231,7 +254,7 @@ class SearchQuery
      *
      * @return string
      */
-    public function getSearchConditionsString()
+    protected function getSearchConditionsString()
     {
         $terms = '';
 
@@ -240,6 +263,21 @@ class SearchQuery
         }
 
         return $terms;
+    }
+
+    /**
+     * Checks if all requirements met to actually compose the query
+     *
+     * @return bool
+     * @throws QueryValidationException
+     */
+    public function validate()
+    {
+        if ($this->searchConditions === null) {
+            throw new QueryValidationException('Must specify at least one search condition.');
+        }
+
+        return true;
     }
 
     /**
@@ -265,6 +303,12 @@ class SearchQuery
             ->cols($this->selectFields)
             ->orderBy(array($this->orderBy . ' ' . $this->ascDesc));
         $select->where($matchString);
+
+        $addWhereConditions = function ($value) use ($select) {
+            $select->where($value);
+        };
+
+        array_map($addWhereConditions, $this->whereConditions);
 
         return (string) $select;
     }
