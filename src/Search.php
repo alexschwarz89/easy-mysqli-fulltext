@@ -29,7 +29,7 @@ class Search
      *
      * @var Array
      */
-    private $searchResult   = null;
+    public $searchResult   = null;
 
     /**
      * After execute is called, contains the number of matched rows
