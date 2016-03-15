@@ -39,7 +39,7 @@ class SearchQuery
     /**
      * Additional where conditions as an array
      *
-     * @var Array
+     * @var array
      */
     private $whereConditions    = array();
     /**

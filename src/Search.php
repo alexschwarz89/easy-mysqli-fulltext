@@ -27,7 +27,7 @@ class Search
     /**
      * The results as an associative array
      *
-     * @var Array
+     * @var array
      */
     public $searchResult   = null;
 
