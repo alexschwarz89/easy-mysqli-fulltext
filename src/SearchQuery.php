@@ -2,6 +2,7 @@
 
 namespace Alexschwarz89\EasyMysqliFulltext;
 use Alexschwarz89\EasyMysqliFulltext\Exception\QueryValidationException;
+use Aura\SqlQuery\Common\SelectInterface;
 use Aura\SqlQuery\QueryFactory;
 
 /**
@@ -57,6 +58,20 @@ class SearchQuery
     private $ascDesc        = 'DESC';
 
     /**
+     * Maximum number of results returned
+     *
+     * @var int|null
+     */
+    private $limit          = null;
+
+    /**
+     * Offset for results (e.g. for pagination)
+     *
+     * @var int|null
+     */
+    private $offset          = null;
+
+    /**
      * Instance of Alexschwarz89\MysqliFulltext\Search
      * @var Search
      */
@@ -108,7 +123,7 @@ class SearchQuery
      * Sets the fields to include in the search results
      * Must be an Array (['*'] to select all fields)
      *
-     * @param Array $fields
+     * @param array $fields
      * @return $this
      */
     public function setSelectFields($fields)
@@ -233,6 +248,31 @@ class SearchQuery
     }
 
     /**
+     * Set the maximum number of matches that should be returned
+     *
+     * @param $limit
+     * @return $this
+     */
+    public function limit($limit)
+    {
+        $this->limit = $limit;
+        return $this;
+    }
+
+    /**
+     * Set an offset of which result should be returned
+     * e.g. use with limit (LIMIT 10,10)
+     *
+     * @param $offset
+     * @return $this
+     */
+    public function offset($offset)
+    {
+        $this->offset = $offset;
+        return $this;
+    }
+
+    /**
      * Adds a condition which will be composed later
      *
      * @param String $prefix
@@ -289,10 +329,8 @@ class SearchQuery
     {
         $queryFactory = new QueryFactory('mysql');
         $select       = $queryFactory->newSelect();
-        $terms        = $this->getSearchConditionsString();
 
-        $matchString    = "MATCH (" . $this->searchInstance->db->real_escape_string($this->searchFields) . ")";
-        $matchString   .= "AGAINST ('" . $this->searchInstance->db->real_escape_string($terms) . "' IN BOOLEAN MODE)";
+        $matchString = $this->getMatchString();
 
         if ($this->orderBy == 'relevance') {
             $this->selectFields[] = $matchString . ' AS relevance';
@@ -303,11 +341,50 @@ class SearchQuery
             ->orderBy(array($this->orderBy . ' ' . $this->ascDesc));
         $select->where($matchString);
 
+        $select = $this->addWhereConditions($select);
+
+        if ($this->limit !== null) {
+            $select->limit($this->limit);
+        }
+
+        if ($this->offset !== null) {
+            $select->offset($this->offset);
+        }
+
+        return (string) $select;
+    }
+
+    protected function getMatchString()
+    {
+        $terms        = $this->getSearchConditionsString();
+        $matchString    = "MATCH (" . $this->searchInstance->db->real_escape_string($this->searchFields) . ")";
+        $matchString   .= "AGAINST ('" . $this->searchInstance->db->real_escape_string($terms) . "' IN BOOLEAN MODE)";
+
+        return $matchString;
+    }
+
+    protected function addWhereConditions($select)
+    {
         $addWhereConditions = function ($value) use ($select) {
+            /* @var SelectInterface $select */
             $select->where($value);
         };
 
         array_map($addWhereConditions, $this->whereConditions);
+
+        return $select;
+    }
+
+    public function composeCountQuery()
+    {
+        $queryFactory   = new QueryFactory('mysql');
+        $select         = $queryFactory->newSelect();
+        $matchString    = $this->getMatchString();
+        $select->from($this->table)
+            ->cols(['COUNT(*)'])
+            ->where($matchString);
+
+        $select = $this->addWhereConditions($select);
 
         return (string) $select;
     }
