@@ -39,6 +39,15 @@ class Search
     public $numRows         = null;
 
     /**
+     * After execute is called, contains the number of all matched rows
+     * This ignores LIMIT and OFFSET parameters
+     * Use for pagination
+     *
+     * @var null
+     */
+    public $totalRows         = null;
+
+    /**
      * Needs an instance of MYSQLi.
      * Also have a look at self::createWithMYSQLi to create a new instance
      *
@@ -106,7 +115,14 @@ class Search
     {
         $this->validate();
 
-        $query = $this->searchQuery;
+        $query      = $this->searchQuery;
+        $countQuery = $this->searchQuery->composeCountQuery();
+
+        $countResult = $this->db->query($countQuery);
+        if (!$countResult) {
+            throw new QueryFailedException('No valid result from Database, Error: ' . $this->db->error, $this->db->errno);
+        }
+
         $result = $this->db->query($query);
 
         if (!$result) {
@@ -114,7 +130,8 @@ class Search
         }
 
         $this->searchResult = $result->fetch_all(MYSQLI_ASSOC);
-        $this->numRows = count($this->searchResult);
+        $this->numRows      = count($this->searchResult);
+        $this->totalRows    = $countResult->fetch_row()[0];
         return $this->searchResult;
     }
 }
