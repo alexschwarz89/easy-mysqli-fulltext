@@ -1,6 +1,7 @@
 <?php
 
 namespace Alexschwarz89\EasyMysqliFulltext;
+
 use Alexschwarz89\EasyMysqliFulltext\Exception\QueryValidationException;
 use Aura\SqlQuery\Common\SelectInterface;
 use Aura\SqlQuery\QueryFactory;
@@ -23,16 +24,19 @@ class SearchQuery
     private $table          = null;
     /**
      * The columns where to search at (e.g. 'title, description')
+     * 
      * @var null
      */
     private $searchFields   = null;
     /**
      * The columns to include in the results
+     * 
      * @var array
      */
     private $selectFields   = array('*');
     /**
      * The conditions built with addCondition, just stored here
+     * 
      * @var null
      */
     private $searchConditions    = null;
@@ -73,6 +77,7 @@ class SearchQuery
 
     /**
      * Instance of Alexschwarz89\MysqliFulltext\Search
+     * 
      * @var Search
      */
     private $searchInstance = null;
@@ -286,7 +291,6 @@ class SearchQuery
             'suffix' => $suffix
         );
     }
-
 
     /**
      * Returns all previously defined search Conditions as a String

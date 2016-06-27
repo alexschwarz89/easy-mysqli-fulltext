@@ -19,6 +19,7 @@ class Search
 {
     /**
      * Holding the mysqli instance
+     * 
      * @var \mysqli
      */
     public $db             = null;
@@ -46,6 +47,7 @@ class Search
      * @var null
      */
     private $database = null;
+
     /**
      * @var SearchQuery
      */
@@ -56,14 +58,12 @@ class Search
      * @var array
      */
     public $searchResult   = null;
-
     /**
      * After execute is called, contains the number of matched rows
      *
      * @var null
      */
     public $numRows         = null;
-
     /**
      * After execute is called, contains the number of all matched rows
      * This ignores LIMIT and OFFSET parameters
@@ -72,7 +72,7 @@ class Search
      * @var null
      */
     public $totalRows         = null;
-
+    
     /**
      * Needs an instance of MYSQLi.
      * Also have a look at self::createWithMYSQLi to create a new instance
@@ -99,7 +99,7 @@ class Search
      */
     protected function loadEnv()
     {
-        if(! getenv("APP_ENV")) {
+        if(!getenv("APP_ENV")) {
             $dotenv = new Dotenv($_SERVER['DOCUMENT_ROOT']);
             $dotenv->load();
         }
