@@ -24,31 +24,6 @@ class Search
      */
     public $db             = null;
     /**
-     * Setting the host connection instance
-     * 
-     * @var null
-     */
-    private $host = null;
-    /**
-     * Setting host user connection instance
-     * 
-     * @var null
-     */
-    private $user = null;
-    /**
-     * Setting host password connection instance
-     * 
-     * @var null;
-     */
-    private $password = null;
-    /**
-     * Setting database name instance
-     * 
-     * @var null
-     */
-    private $database = null;
-
-    /**
      * @var SearchQuery
      */
     private $searchQuery    = null;
@@ -72,7 +47,7 @@ class Search
      * @var null
      */
     public $totalRows         = null;
-    
+
     /**
      * Needs an instance of MYSQLi.
      * Also have a look at self::createWithMYSQLi to create a new instance
@@ -81,12 +56,6 @@ class Search
      */
     public function __construct(\mysqli $connection)
     {
-        $this->loadEnv();
-        $this->host     = getenv('DATABASE_HOST');
-        $this->user     = getenv('DATABASE_USERNAME');
-        $this->password = getenv('DATABASE_PASSWORD');
-        $this->database = getenv('DATABASE_NAME');
-
         if ($connection !== null) {
             $this->db = $connection;
         }
@@ -97,12 +66,38 @@ class Search
      *
      * @return Values
      */
-    protected function loadEnv()
+    protected static function loadEnv()
     {
         if(!getenv("APP_ENV")) {
             $dotenv = new Dotenv($_SERVER['DOCUMENT_ROOT']);
             $dotenv->load();
         }
+    }
+
+    /**
+     * Set Mysqli connection either from .env or argument
+     * 
+     * @param  $host
+     * @param  $user
+     * @param  $password
+     * @param  $database
+     * @return \mysqli connection
+     */
+    protected static function createConnection($host, $user, $password, $database)
+    {
+        self::loadEnv();
+        if ($host == null && $user == null && $password == null && $database == null) {
+            $host = getenv('DATABASE_HOST');
+            $user = getenv('DATABASE_USERNAME');
+            $password = getenv('DATABASE_PASSWORD');
+            $database = getenv('DATABASE_NAME');
+        } else {
+            $host = $host;
+            $user = $user;
+            $password = $password;
+            $database = getenv('DATABASE_NAME');
+        }
+        return new \mysqli($host, $user, $password, $database);
     }
 
     /**
@@ -112,9 +107,9 @@ class Search
      * @return Search
      * @throws \Exception
      */
-    public static function createWithMYSQLi()
+    public static function createWithMYSQLi($host=null, $user=null, $password=null, $database=null)
     {
-        $db = new \mysqli($this->host, $this->user, $this->password, $this->database);
+        $db = self::createConnection($host, $user, $password, $database);
         if ($db->connect_errno) {
             throw new ConnectionFailedException('Failed to connect to MySQL', $db->connect_errno);
         }
