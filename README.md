@@ -48,6 +48,18 @@ $search->execute();
 $search = Search::createWithMYSQLi('localhost', 'username', 'password', 'dbname');
 ```
 
+#### You can also pass the connection variables via Environment Variable (.env) and just Use
+```php
+$search = Search::createWithMYSQLi();
+```
+#### .env file saved in your root directory
+``` 
+DATABASE_HOST=localhost
+DATABASE_USERNAME=username
+DATABASE_PASSWORD=password
+DATABASE_NAME=database_name
+```
+
 #### Build more complex search queries
 ```php
 $query->setTable('testdata') 
