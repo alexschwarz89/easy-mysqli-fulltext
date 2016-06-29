@@ -85,8 +85,8 @@ class Search
      */
     protected static function createConnection($host, $user, $password, $database)
     {
-        self::loadEnv();
         if ($host == null && $user == null && $password == null && $database == null) {
+            self::loadEnv();
             $host = getenv('DATABASE_HOST');
             $user = getenv('DATABASE_USERNAME');
             $password = getenv('DATABASE_PASSWORD');
@@ -95,7 +95,7 @@ class Search
             $host = $host;
             $user = $user;
             $password = $password;
-            $database = getenv('DATABASE_NAME');
+            $database = $database;
         }
         return new \mysqli($host, $user, $password, $database);
     }
