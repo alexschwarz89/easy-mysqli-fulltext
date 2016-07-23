@@ -1,9 +1,11 @@
 <?php
 
 namespace Alexschwarz89\EasyMysqliFulltext;
-use Alexschwarz89\EasyMysqliFulltext\Exception\ConnectionFailedException;
+
+use Dotenv\Dotenv;
 use Alexschwarz89\EasyMysqliFulltext\Exception\QueryFailedException;
 use Alexschwarz89\EasyMysqliFulltext\Exception\QueryValidationException;
+use Alexschwarz89\EasyMysqliFulltext\Exception\ConnectionFailedException;
 
 /**
  * Class Search
@@ -17,6 +19,7 @@ class Search
 {
     /**
      * Holding the mysqli instance
+     * 
      * @var \mysqli
      */
     public $db             = null;
@@ -30,14 +33,12 @@ class Search
      * @var array
      */
     public $searchResult   = null;
-
     /**
      * After execute is called, contains the number of matched rows
      *
      * @var null
      */
     public $numRows         = null;
-
     /**
      * After execute is called, contains the number of all matched rows
      * This ignores LIMIT and OFFSET parameters
@@ -61,19 +62,54 @@ class Search
     }
 
     /**
+     * Load Dotenv to grant getenv() access to environment variables in .env file
+     *
+     * @return Values
+     */
+    protected static function loadEnv()
+    {
+        if(!getenv("APP_ENV")) {
+            $dotenv = new Dotenv($_SERVER['DOCUMENT_ROOT']);
+            $dotenv->load();
+        }
+    }
+
+    /**
+     * Set Mysqli connection either from .env or argument
+     * 
+     * @param  $host
+     * @param  $user
+     * @param  $password
+     * @param  $database
+     * @return \mysqli connection
+     */
+    protected static function createConnection($host, $user, $password, $database)
+    {
+        if ($host == null && $user == null && $password == null && $database == null) {
+            self::loadEnv();
+            $host = getenv('DATABASE_HOST');
+            $user = getenv('DATABASE_USERNAME');
+            $password = getenv('DATABASE_PASSWORD');
+            $database = getenv('DATABASE_NAME');
+        } else {
+            $host = $host;
+            $user = $user;
+            $password = $password;
+            $database = $database;
+        }
+        return new \mysqli($host, $user, $password, $database);
+    }
+
+    /**
      * Returns a new Instance of itself with setting up a mysqli instance
      * Throws a Exception with mysqli connect_errno as Code if there is a problem
      *
-     * @param $host
-     * @param $user
-     * @param $password
-     * @param $database
      * @return Search
      * @throws \Exception
      */
-    public static function createWithMYSQLi($host, $user, $password, $database)
+    public static function createWithMYSQLi($host=null, $user=null, $password=null, $database=null)
     {
-        $db = new \mysqli($host, $user, $password, $database);
+        $db = self::createConnection($host, $user, $password, $database);
         if ($db->connect_errno) {
             throw new ConnectionFailedException('Failed to connect to MySQL', $db->connect_errno);
         }
