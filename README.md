@@ -12,7 +12,7 @@ Install via [composer](https://getcomposer.org):
 ```javascript
 {
     "require": {
-        "alexschwarz89/EasyMysqliFulltext": "1.0.1"
+        "alexschwarz89/EasyMysqliFulltext": "1.2.0"
     }
 }
 ```
