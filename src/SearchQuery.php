@@ -1,7 +1,9 @@
 <?php
 
 namespace Alexschwarz89\EasyMysqliFulltext;
+use Alexschwarz89\EasyMysqliFulltext\Exception\EmptySearchTermException;
 use Alexschwarz89\EasyMysqliFulltext\Exception\QueryValidationException;
+use Alexschwarz89\EasyMysqliFulltext\Exception\TermValidationException;
 use Aura\SqlQuery\Common\SelectInterface;
 use Aura\SqlQuery\QueryFactory;
 
@@ -157,6 +159,20 @@ class SearchQuery
     }
 
     /**
+     * This part must be present in each row that is returned
+     * Adds * to the end of the word, e.g. to make
+     * "Exa*" match "Example".
+     *
+     * @param $term
+     * @return $this
+     */
+    public function mustIncludeWildcard($term)
+    {
+        $this->addCondition('+', $term, '*');
+        return $this;
+    }
+
+    /**
      * This word is optional, but rows that contain it are rated higher.
      * This mimics the behavior of MATCH() ... AGAINST() without the IN BOOLEAN MODE modifier.
      *
@@ -220,6 +236,23 @@ class SearchQuery
     }
 
     /**
+     * Sanitizes include terms and removes invalid characters
+     * that lead to syntax errors when using INNODB
+     *
+     * leading a plus and minus sign combination
+     * leading / trailing plus or minus signs
+     * search terms that only consist of special characters (-*+)
+     *
+     * @see http://dev.mysql.com/doc/refman/5.6/en/fulltext-boolean.html
+     * @param $term
+     * @return mixed
+     */
+    public function sanitizeIncludeTerm($term)
+    {
+        return preg_replace('/[+\-><\(\)~*\"@]+/', ' ', trim($term));
+    }
+
+    /**
      * Add a additional where condition as string
      * can be called multiple times
      *
@@ -280,8 +313,9 @@ class SearchQuery
      * @param String $suffix optional
      */
     protected function addCondition($prefix, $value, $suffix=null) {
+
         $this->searchConditions[] = array(
-            'value' => $value,
+            'value' => $this->sanitizeIncludeTerm($value),
             'prefix' => $prefix,
             'suffix' => $suffix
         );
@@ -301,6 +335,7 @@ class SearchQuery
             $terms .= $condition['prefix'] . $condition['value'] . $condition['suffix'] . ' ';
         }
 
+
         return $terms;
     }
 
@@ -309,11 +344,18 @@ class SearchQuery
      *
      * @return bool
      * @throws QueryValidationException
+     * @throws EmptySearchTermException
      */
     public function validate()
     {
         if ($this->searchConditions === null) {
             throw new QueryValidationException('Must specify at least one search condition.');
+        }
+
+        foreach ($this->searchConditions as $condition) {
+            if (strlen(trim($condition['value'])) == 0) {
+                throw new EmptySearchTermException();
+            }
         }
 
         return true;
@@ -358,7 +400,7 @@ class SearchQuery
     {
         $terms        = $this->getSearchConditionsString();
         $matchString    = "MATCH (" . $this->searchInstance->db->real_escape_string($this->searchFields) . ")";
-        $matchString   .= "AGAINST ('" . $this->searchInstance->db->real_escape_string($terms) . "' IN BOOLEAN MODE)";
+        $matchString   .= " AGAINST ('" . $this->searchInstance->db->real_escape_string($terms) . "' IN BOOLEAN MODE)";
 
         return $matchString;
     }
