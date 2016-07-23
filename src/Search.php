@@ -85,7 +85,7 @@ class Search
      */
     protected static function createConnection($host, $user, $password, $database)
     {
-        if ($host == null && $user == null && $password == null && $database == null) {
+        if ($host === null && $user === null && $password === null && $database === null) {
             self::loadEnv();
             $host = getenv('DATABASE_HOST');
             $user = getenv('DATABASE_USERNAME');

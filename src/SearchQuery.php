@@ -3,7 +3,6 @@
 namespace Alexschwarz89\EasyMysqliFulltext;
 use Alexschwarz89\EasyMysqliFulltext\Exception\EmptySearchTermException;
 use Alexschwarz89\EasyMysqliFulltext\Exception\QueryValidationException;
-use Alexschwarz89\EasyMysqliFulltext\Exception\TermValidationException;
 use Aura\SqlQuery\Common\SelectInterface;
 use Aura\SqlQuery\QueryFactory;
 
