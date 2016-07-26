@@ -38,7 +38,11 @@ $query->setTable('testdata')
     ->mustInclude('example');
     
 $search->setSearchQuery( $query );
-$search->execute();
+try {
+    $search->execute();
+} catch (EmptySearchTermException $e) {
+    // Handle invalid search terms
+}
 ```
 
 ## You can also
