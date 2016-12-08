@@ -3,7 +3,6 @@
 namespace Alexschwarz89\EasyMysqliFulltext;
 use Alexschwarz89\EasyMysqliFulltext\Exception\EmptySearchTermException;
 use Alexschwarz89\EasyMysqliFulltext\Exception\QueryValidationException;
-use Aura\SqlQuery\Common\SelectInterface;
 use Aura\SqlQuery\QueryFactory;
 
 /**
@@ -410,7 +409,7 @@ class SearchQuery
     protected function addWhereConditions($select)
     {
         $addWhereConditions = function ($value) use ($select) {
-            /* @var SelectInterface $select */
+            /* @var Aura\SqlQuery\Common\SelectInterface $select */
             $select->where($value);
         };
 
