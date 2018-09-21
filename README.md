@@ -5,8 +5,7 @@ An easy-to-use Library to perform ranked fulltext searches with MYSQLi.
 [![Latest Stable Version](https://poser.pugx.org/alexschwarz89/easy-mysqli-fulltext/v/stable)](https://packagist.org/packages/alexschwarz89/easy-mysqli-fulltext)
 [![License](https://poser.pugx.org/alexschwarz89/easy-mysqli-fulltext/license)](https://packagist.org/packages/alexschwarz89/easy-mysqli-fulltext)
 [![composer.lock](https://poser.pugx.org/alexschwarz89/easy-mysqli-fulltext/composerlock)](https://packagist.org/packages/alexschwarz89/easy-mysqli-fulltext)
-[![codeship](https://codeship.com/projects/5146afa0-b327-0134-f77c-1ec4f5713571/status?branch=master)](https://codeship.com/projects/5146afa0-b327-0134-f77c-1ec4f5713571/status?branch=master)
-
+[![GetBadges Game](https://alexschwarz89-easy-mysqli-fulltext.getbadges.io/shield/company/alexschwarz89-easy-mysqli-fulltext)](https://alexschwarz89-easy-mysqli-fulltext.getbadges.io/?ref=shield-game)
 
 ## Install
 
