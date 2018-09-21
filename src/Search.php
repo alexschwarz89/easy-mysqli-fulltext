@@ -91,12 +91,8 @@ class Search
             $user = getenv('DATABASE_USERNAME');
             $password = getenv('DATABASE_PASSWORD');
             $database = getenv('DATABASE_NAME');
-        } else {
-            $host = $host;
-            $user = $user;
-            $password = $password;
-            $database = $database;
         }
+
         return new \mysqli($host, $user, $password, $database);
     }
 

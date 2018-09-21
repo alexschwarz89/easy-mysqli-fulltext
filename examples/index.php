@@ -25,7 +25,7 @@ $search->setSearchQuery( $query );
 $results = $search->execute();
 
 if ($search->numRows > 0) {
-    print "There are " . $search->numRows . "rows that match your search.\n";
+    print "There are " . $search->numRows . " rows that match your search.\n";
     //var_dump($results)
 } else {
     print "No results. \n";
