@@ -19,26 +19,22 @@ class Search
 {
     /**
      * Holding the mysqli instance
-     * 
+     *
      * @var \mysqli
      */
-    public $db             = null;
-    /**
-     * @var SearchQuery
-     */
-    private $searchQuery    = null;
+    public $db = null;
     /**
      * The results as an associative array
      *
      * @var array
      */
-    public $searchResult   = null;
+    public $searchResult = null;
     /**
      * After execute is called, contains the number of matched rows
      *
      * @var null
      */
-    public $numRows         = null;
+    public $numRows = null;
     /**
      * After execute is called, contains the number of all matched rows
      * This ignores LIMIT and OFFSET parameters
@@ -46,7 +42,11 @@ class Search
      *
      * @var null
      */
-    public $totalRows         = null;
+    public $totalRows = null;
+    /**
+     * @var SearchQuery
+     */
+    private $searchQuery = null;
 
     /**
      * Needs an instance of MYSQLi.
@@ -62,21 +62,24 @@ class Search
     }
 
     /**
-     * Load Dotenv to grant getenv() access to environment variables in .env file
+     * Returns a new Instance of itself with setting up a mysqli instance
+     * Throws a Exception with mysqli connect_errno as Code if there is a problem
      *
-     * @return void
+     * @return Search
+     * @throws \Exception
      */
-    protected static function loadEnv(): void
+    public static function createWithMYSQLi($host = null, $user = null, $password = null, $database = null): Search
     {
-        if(!getenv("APP_ENV")) {
-            $dotenv = new Dotenv($_SERVER['DOCUMENT_ROOT']);
-            $dotenv->load();
+        $db = self::createConnection($host, $user, $password, $database);
+        if ($db->connect_errno) {
+            throw new ConnectionFailedException('Failed to connect to MySQL', $db->connect_errno);
         }
+        return new self($db);
     }
 
     /**
      * Set Mysqli connection either from .env or argument
-     * 
+     *
      * @param  $host
      * @param  $user
      * @param  $password
@@ -97,19 +100,16 @@ class Search
     }
 
     /**
-     * Returns a new Instance of itself with setting up a mysqli instance
-     * Throws a Exception with mysqli connect_errno as Code if there is a problem
+     * Load Dotenv to grant getenv() access to environment variables in .env file
      *
-     * @return Search
-     * @throws \Exception
+     * @return void
      */
-    public static function createWithMYSQLi($host=null, $user=null, $password=null, $database=null): Search
+    protected static function loadEnv(): void
     {
-        $db = self::createConnection($host, $user, $password, $database);
-        if ($db->connect_errno) {
-            throw new ConnectionFailedException('Failed to connect to MySQL', $db->connect_errno);
+        if (!getenv("APP_ENV")) {
+            $dotenv = new Dotenv($_SERVER['DOCUMENT_ROOT']);
+            $dotenv->load();
         }
-        return new self($db);
     }
 
     /**
@@ -120,6 +120,38 @@ class Search
     public function setSearchQuery(SearchQuery $query): void
     {
         $this->searchQuery = $query;
+    }
+
+    /**
+     * Performs the actual query on the database and returns the results
+     * as an associative array. If there a no results, returns an empty array.
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function execute(): array
+    {
+        $this->validate();
+
+        $query = $this->searchQuery;
+        $countQuery = $this->searchQuery->composeCountQuery();
+
+        $countResult = $this->db->query($countQuery);
+        if (!$countResult) {
+            throw new QueryFailedException('No valid result from Database, Error: ' . $this->db->error, $this->db->errno);
+        }
+
+        $result = $this->db->query($query);
+
+        if (!$result) {
+            throw new QueryFailedException('No valid result from Database, Error: ' . $this->db->error, $this->db->errno);
+        }
+
+        $this->searchResult = $result->fetch_all(MYSQLI_ASSOC);
+        $this->numRows = count($this->searchResult);
+        $this->totalRows = $countResult->fetch_row()[0];
+
+        return $this->searchResult;
     }
 
     /**
@@ -135,37 +167,5 @@ class Search
         }
 
         $this->searchQuery->validate();
-    }
-
-    /**
-     * Performs the actual query on the database and returns the results
-     * as an associative array. If there a no results, returns an empty array.
-     *
-     * @return array
-     * @throws \Exception
-     */
-    public function execute(): array
-    {
-        $this->validate();
-
-        $query      = $this->searchQuery;
-        $countQuery = $this->searchQuery->composeCountQuery();
-
-        $countResult = $this->db->query($countQuery);
-        if (!$countResult) {
-            throw new QueryFailedException('No valid result from Database, Error: ' . $this->db->error, $this->db->errno);
-        }
-
-        $result = $this->db->query($query);
-
-        if (!$result) {
-            throw new QueryFailedException('No valid result from Database, Error: ' . $this->db->error, $this->db->errno);
-        }
-
-        $this->searchResult = $result->fetch_all(MYSQLI_ASSOC);
-        $this->numRows      = count($this->searchResult);
-        $this->totalRows    = $countResult->fetch_row()[0];
-
-        return $this->searchResult;
     }
 }

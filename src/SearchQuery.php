@@ -1,6 +1,7 @@
 <?php
 
 namespace Alexschwarz89\EasyMysqliFulltext;
+
 use Alexschwarz89\EasyMysqliFulltext\Exception\EmptySearchTermException;
 use Alexschwarz89\EasyMysqliFulltext\Exception\QueryValidationException;
 use Aura\SqlQuery\Common\SelectInterface;
@@ -17,77 +18,72 @@ use Aura\SqlQuery\QueryFactory;
 class SearchQuery
 {
     /**
+     * The final composed query after all work is done
+     *
+     * @var
+     */
+    public $composedQuery;
+    /**
      * The table name, where to search at
      *
      * @var String
      */
-    private $table          = null;
+    private $table = null;
     /**
      * The columns where to search at (e.g. 'title, description')
-     * 
+     *
      * @var null
      */
-    private $searchFields   = null;
+    private $searchFields = null;
     /**
      * The columns to include in the results
-     * 
+     *
      * @var array
      */
-    private $selectFields   = array('*');
+    private $selectFields = ['*'];
     /**
      * The conditions built with addCondition, just stored here
-     * 
+     *
      * @var null
      */
-    private $searchConditions    = null;
-
+    private $searchConditions = null;
     /**
      * Additional where conditions as an array
      *
      * @var array
      */
-    private $whereConditions    = array();
+    private $whereConditions = [];
     /**
      * If set to 'relevance' will automatically select the relevance
      * and does everything for you.
      *
      * @var string
      */
-    private $orderBy        = 'relevance';
+    private $orderBy = 'relevance';
     /**
      * Ascending or Descending Sort
      *
      * @var string
      */
-    private $ascDesc        = 'DESC';
-
+    private $ascDesc = 'DESC';
     /**
      * Maximum number of results returned
      *
      * @var int|null
      */
-    private $limit          = null;
-
+    private $limit = null;
     /**
      * Offset for results (e.g. for pagination)
      *
      * @var int|null
      */
-    private $offset          = null;
-
+    private $offset = null;
     /**
      * Instance of Alexschwarz89\MysqliFulltext\Search
-     * 
+     *
      * @var Search
      */
     private $searchInstance = null;
-
-    /**
-     * The final composed query after all work is done
-     *
-     * @var
-     */
-    public $composedQuery;
 
     /**
      * Pass the instance of Search
@@ -147,6 +143,39 @@ class SearchQuery
     {
         $this->addCondition('-', $term);
         return $this;
+    }
+
+    /**
+     * Adds a condition which will be composed later
+     *
+     * @param String $prefix
+     * @param String $value
+     * @param String $suffix optional
+     */
+    protected function addCondition($prefix, $value, $suffix = null): void
+    {
+        $this->searchConditions[] = [
+            'value'  => $this->sanitizeIncludeTerm($value),
+            'prefix' => $prefix,
+            'suffix' => $suffix
+        ];
+    }
+
+    /**
+     * Sanitizes include terms and removes invalid characters
+     * that lead to syntax errors when using INNODB
+     *
+     * leading a plus and minus sign combination
+     * leading / trailing plus or minus signs
+     * search terms that only consist of special characters (-*+)
+     *
+     * @see http://dev.mysql.com/doc/refman/5.6/en/fulltext-boolean.html
+     * @param $term
+     * @return string
+     */
+    public function sanitizeIncludeTerm($term): string
+    {
+        return preg_replace('/[+\-><\(\)~*\"@]+/', ' ', trim($term));
     }
 
     /**
@@ -239,23 +268,6 @@ class SearchQuery
     }
 
     /**
-     * Sanitizes include terms and removes invalid characters
-     * that lead to syntax errors when using INNODB
-     *
-     * leading a plus and minus sign combination
-     * leading / trailing plus or minus signs
-     * search terms that only consist of special characters (-*+)
-     *
-     * @see http://dev.mysql.com/doc/refman/5.6/en/fulltext-boolean.html
-     * @param $term
-     * @return string
-     */
-    public function sanitizeIncludeTerm($term): string
-    {
-        return preg_replace('/[+\-><\(\)~*\"@]+/', ' ', trim($term));
-    }
-
-    /**
      * Add a additional where condition as string
      * can be called multiple times
      *
@@ -276,7 +288,7 @@ class SearchQuery
      * @param string $ascDesc
      * @return $this
      */
-    public function orderBy($fields, $ascDesc='DESC'): SearchQuery
+    public function orderBy($fields, $ascDesc = 'DESC'): SearchQuery
     {
         $this->orderBy = $fields;
         $this->ascDesc = $ascDesc;
@@ -309,38 +321,6 @@ class SearchQuery
     }
 
     /**
-     * Adds a condition which will be composed later
-     *
-     * @param String $prefix
-     * @param String $value
-     * @param String $suffix optional
-     */
-    protected function addCondition($prefix, $value, $suffix=null): void
-    {
-        $this->searchConditions[] = array(
-            'value' => $this->sanitizeIncludeTerm($value),
-            'prefix' => $prefix,
-            'suffix' => $suffix
-        );
-    }
-
-    /**
-     * Returns all previously defined search Conditions as a String
-     *
-     * @return string
-     */
-    protected function getSearchConditionsString(): string
-    {
-        $terms = '';
-
-        foreach ($this->searchConditions as $condition) {
-            $terms .= $condition['prefix'] . $condition['value'] . $condition['suffix'] . ' ';
-        }
-
-        return $terms;
-    }
-
-    /**
      * Checks if all requirements met to actually compose the query
      *
      * @return bool
@@ -363,38 +343,22 @@ class SearchQuery
     }
 
     /**
-     * Composes the actual query that later will be sent to the database
-     * and returns it.
+     * Composes count query and returns it as a string
      *
      * @return string
      */
-    public function compose(): string
+    public function composeCountQuery(): string
     {
         $queryFactory = new QueryFactory('mysql');
-        $select       = $queryFactory->newSelect();
-
+        $select = $queryFactory->newSelect();
         $matchString = $this->getMatchString();
-
-        if ($this->orderBy == 'relevance') {
-            $this->selectFields[] = $matchString . ' AS relevance';
-        }
-
         $select->from($this->table)
-            ->cols($this->selectFields)
-            ->orderBy(array($this->orderBy . ' ' . $this->ascDesc));
-        $select->where($matchString);
+            ->cols(['COUNT(*)'])
+            ->where($matchString);
 
         $select = $this->addWhereConditions($select);
 
-        if ($this->limit !== null) {
-            $select->limit($this->limit);
-        }
-
-        if ($this->offset !== null) {
-            $select->offset($this->offset);
-        }
-
-        return (string) $select;
+        return (string)$select;
     }
 
     /**
@@ -404,11 +368,27 @@ class SearchQuery
      */
     protected function getMatchString(): string
     {
-        $terms        = $this->getSearchConditionsString();
-        $matchString    = "MATCH (" . $this->searchInstance->db->real_escape_string($this->searchFields) . ")";
-        $matchString   .= " AGAINST ('" . $this->searchInstance->db->real_escape_string($terms) . "' IN BOOLEAN MODE)";
+        $terms = $this->getSearchConditionsString();
+        $matchString = "MATCH (" . $this->searchInstance->db->real_escape_string($this->searchFields) . ")";
+        $matchString .= " AGAINST ('" . $this->searchInstance->db->real_escape_string($terms) . "' IN BOOLEAN MODE)";
 
         return $matchString;
+    }
+
+    /**
+     * Returns all previously defined search Conditions as a String
+     *
+     * @return string
+     */
+    protected function getSearchConditionsString(): string
+    {
+        $terms = '';
+
+        foreach ($this->searchConditions as $condition) {
+            $terms .= $condition['prefix'] . $condition['value'] . $condition['suffix'] . ' ';
+        }
+
+        return $terms;
     }
 
     /**
@@ -430,25 +410,6 @@ class SearchQuery
     }
 
     /**
-     * Composes count query and returns it as a string
-     *
-     * @return string
-     */
-    public function composeCountQuery(): string
-    {
-        $queryFactory   = new QueryFactory('mysql');
-        $select         = $queryFactory->newSelect();
-        $matchString    = $this->getMatchString();
-        $select->from($this->table)
-            ->cols(['COUNT(*)'])
-            ->where($matchString);
-
-        $select = $this->addWhereConditions($select);
-
-        return (string) $select;
-    }
-
-    /**
      * Returns the actual composed query as a string
      *
      * @return string
@@ -456,5 +417,40 @@ class SearchQuery
     public function __toString(): string
     {
         return $this->compose();
+    }
+
+    /**
+     * Composes the actual query that later will be sent to the database
+     * and returns it.
+     *
+     * @return string
+     */
+    public function compose(): string
+    {
+        $queryFactory = new QueryFactory('mysql');
+        $select = $queryFactory->newSelect();
+
+        $matchString = $this->getMatchString();
+
+        if ($this->orderBy == 'relevance') {
+            $this->selectFields[] = $matchString . ' AS relevance';
+        }
+
+        $select->from($this->table)
+            ->cols($this->selectFields)
+            ->orderBy([$this->orderBy . ' ' . $this->ascDesc]);
+        $select->where($matchString);
+
+        $select = $this->addWhereConditions($select);
+
+        if ($this->limit !== null) {
+            $select->limit($this->limit);
+        }
+
+        if ($this->offset !== null) {
+            $select->offset($this->offset);
+        }
+
+        return (string)$select;
     }
 }
