@@ -397,6 +397,11 @@ class SearchQuery
         return (string) $select;
     }
 
+    /**
+     * Returns the MATCH … AGAINST string
+     *
+     * @return string
+     */
     protected function getMatchString(): string
     {
         $terms        = $this->getSearchConditionsString();
@@ -406,6 +411,12 @@ class SearchQuery
         return $matchString;
     }
 
+    /**
+     * Adds where conditions to SelectInterface
+     *
+     * @param SelectInterface $select
+     * @return SelectInterface
+     */
     protected function addWhereConditions(SelectInterface $select): SelectInterface
     {
         $addWhereConditions = function ($value) use ($select) {
@@ -418,6 +429,11 @@ class SearchQuery
         return $select;
     }
 
+    /**
+     * Composes count query and returns it as a string
+     *
+     * @return string
+     */
     public function composeCountQuery(): string
     {
         $queryFactory   = new QueryFactory('mysql');
