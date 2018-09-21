@@ -12,7 +12,8 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": ">=5.3.9",
+        "php": ">=7.1",
+        "ext-mysqli": "*",
         "aura/sqlquery": "2.7.1",
         "vlucas/phpdotenv": "^2.0"
     },

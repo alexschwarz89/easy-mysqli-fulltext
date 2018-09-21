@@ -64,9 +64,9 @@ class Search
     /**
      * Load Dotenv to grant getenv() access to environment variables in .env file
      *
-     * @return Values
+     * @return void
      */
-    protected static function loadEnv()
+    protected static function loadEnv(): void
     {
         if(!getenv("APP_ENV")) {
             $dotenv = new Dotenv($_SERVER['DOCUMENT_ROOT']);
@@ -83,7 +83,7 @@ class Search
      * @param  $database
      * @return \mysqli connection
      */
-    protected static function createConnection($host, $user, $password, $database)
+    protected static function createConnection($host, $user, $password, $database): \mysqli
     {
         if ($host === null && $user === null && $password === null && $database === null) {
             self::loadEnv();
@@ -103,7 +103,7 @@ class Search
      * @return Search
      * @throws \Exception
      */
-    public static function createWithMYSQLi($host=null, $user=null, $password=null, $database=null)
+    public static function createWithMYSQLi($host=null, $user=null, $password=null, $database=null): Search
     {
         $db = self::createConnection($host, $user, $password, $database);
         if ($db->connect_errno) {
@@ -117,7 +117,7 @@ class Search
      *
      * @param SearchQuery $query
      */
-    public function setSearchQuery(SearchQuery $query)
+    public function setSearchQuery(SearchQuery $query): void
     {
         $this->searchQuery = $query;
     }
@@ -126,8 +126,9 @@ class Search
      * Checks if a search query is set and if this query validates
      *
      * @throws QueryValidationException
+     * @throws \Exception
      */
-    public function validate()
+    public function validate(): void
     {
         if (!$this->searchQuery instanceof SearchQuery) {
             throw new QueryValidationException('Must set a search query.');
@@ -140,10 +141,10 @@ class Search
      * Performs the actual query on the database and returns the results
      * as an associative array. If there a no results, returns an empty array.
      *
-     * @return Array
+     * @return array
      * @throws \Exception
      */
-    public function execute()
+    public function execute(): array
     {
         $this->validate();
 
@@ -164,6 +165,7 @@ class Search
         $this->searchResult = $result->fetch_all(MYSQLI_ASSOC);
         $this->numRows      = count($this->searchResult);
         $this->totalRows    = $countResult->fetch_row()[0];
+
         return $this->searchResult;
     }
 }

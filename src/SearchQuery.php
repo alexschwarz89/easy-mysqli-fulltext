@@ -3,6 +3,7 @@
 namespace Alexschwarz89\EasyMysqliFulltext;
 use Alexschwarz89\EasyMysqliFulltext\Exception\EmptySearchTermException;
 use Alexschwarz89\EasyMysqliFulltext\Exception\QueryValidationException;
+use Aura\SqlQuery\Common\SelectInterface;
 use Aura\SqlQuery\QueryFactory;
 
 /**
@@ -105,7 +106,7 @@ class SearchQuery
      * @param $table
      * @return $this
      */
-    public function setTable($table)
+    public function setTable($table): SearchQuery
     {
         $this->table = $table;
         return $this;
@@ -117,7 +118,7 @@ class SearchQuery
      * @param String $fields
      * @return $this
      */
-    public function setSearchFields($fields)
+    public function setSearchFields($fields): SearchQuery
     {
         $this->searchFields = $fields;
         return $this;
@@ -130,7 +131,7 @@ class SearchQuery
      * @param array $fields
      * @return $this
      */
-    public function setSelectFields($fields)
+    public function setSelectFields($fields): SearchQuery
     {
         $this->selectFields = $fields;
         return $this;
@@ -142,7 +143,7 @@ class SearchQuery
      * @param $term
      * @return $this
      */
-    public function exclude($term)
+    public function exclude($term): SearchQuery
     {
         $this->addCondition('-', $term);
         return $this;
@@ -154,7 +155,7 @@ class SearchQuery
      * @param $term
      * @return $this
      */
-    public function mustInclude($term)
+    public function mustInclude($term): SearchQuery
     {
         $this->addCondition('+', $term);
         return $this;
@@ -168,7 +169,7 @@ class SearchQuery
      * @param $term
      * @return $this
      */
-    public function mustIncludeWildcard($term)
+    public function mustIncludeWildcard($term): SearchQuery
     {
         $this->addCondition('+', $term, '*');
         return $this;
@@ -181,7 +182,7 @@ class SearchQuery
      * @param $term
      * @return $this
      */
-    public function canInclude($term)
+    public function canInclude($term): SearchQuery
     {
         $this->addCondition('', $term);
         return $this;
@@ -194,7 +195,7 @@ class SearchQuery
      * @param $term
      * @return $this
      */
-    public function preferWithout($term)
+    public function preferWithout($term): SearchQuery
     {
         $this->addCondition('~', $term);
         return $this;
@@ -206,7 +207,7 @@ class SearchQuery
      * @param $term
      * @return $this
      */
-    public function rankHigher($term)
+    public function rankHigher($term): SearchQuery
     {
         $this->addCondition('>', $term);
         return $this;
@@ -218,7 +219,7 @@ class SearchQuery
      * @param $term
      * @return $this
      */
-    public function rankLower($term)
+    public function rankLower($term): SearchQuery
     {
         $this->addCondition('<', $term);
         return $this;
@@ -231,7 +232,7 @@ class SearchQuery
      * @param $term
      * @return $this
      */
-    public function mustContainPhrase($term)
+    public function mustContainPhrase($term): SearchQuery
     {
         $this->addCondition('"', $term, '"');
         return $this;
@@ -247,9 +248,9 @@ class SearchQuery
      *
      * @see http://dev.mysql.com/doc/refman/5.6/en/fulltext-boolean.html
      * @param $term
-     * @return mixed
+     * @return string
      */
-    public function sanitizeIncludeTerm($term)
+    public function sanitizeIncludeTerm($term): string
     {
         return preg_replace('/[+\-><\(\)~*\"@]+/', ' ', trim($term));
     }
@@ -261,7 +262,7 @@ class SearchQuery
      * @param String $cond
      * @return $this
      */
-    public function addWhere($cond)
+    public function addWhere($cond): SearchQuery
     {
         $this->whereConditions[] = $cond;
         return $this;
@@ -275,7 +276,7 @@ class SearchQuery
      * @param string $ascDesc
      * @return $this
      */
-    public function orderBy($fields, $ascDesc='DESC')
+    public function orderBy($fields, $ascDesc='DESC'): SearchQuery
     {
         $this->orderBy = $fields;
         $this->ascDesc = $ascDesc;
@@ -288,7 +289,7 @@ class SearchQuery
      * @param $limit
      * @return $this
      */
-    public function limit($limit)
+    public function limit($limit): SearchQuery
     {
         $this->limit = $limit;
         return $this;
@@ -301,7 +302,7 @@ class SearchQuery
      * @param $offset
      * @return $this
      */
-    public function offset($offset)
+    public function offset($offset): SearchQuery
     {
         $this->offset = $offset;
         return $this;
@@ -314,8 +315,8 @@ class SearchQuery
      * @param String $value
      * @param String $suffix optional
      */
-    protected function addCondition($prefix, $value, $suffix=null) {
-
+    protected function addCondition($prefix, $value, $suffix=null): void
+    {
         $this->searchConditions[] = array(
             'value' => $this->sanitizeIncludeTerm($value),
             'prefix' => $prefix,
@@ -328,14 +329,13 @@ class SearchQuery
      *
      * @return string
      */
-    protected function getSearchConditionsString()
+    protected function getSearchConditionsString(): string
     {
         $terms = '';
 
         foreach ($this->searchConditions as $condition) {
             $terms .= $condition['prefix'] . $condition['value'] . $condition['suffix'] . ' ';
         }
-
 
         return $terms;
     }
@@ -347,7 +347,7 @@ class SearchQuery
      * @throws QueryValidationException
      * @throws EmptySearchTermException
      */
-    public function validate()
+    public function validate(): bool
     {
         if ($this->searchConditions === null) {
             throw new QueryValidationException('Must specify at least one search condition.');
@@ -368,7 +368,7 @@ class SearchQuery
      *
      * @return string
      */
-    public function compose()
+    public function compose(): string
     {
         $queryFactory = new QueryFactory('mysql');
         $select       = $queryFactory->newSelect();
@@ -397,7 +397,7 @@ class SearchQuery
         return (string) $select;
     }
 
-    protected function getMatchString()
+    protected function getMatchString(): string
     {
         $terms        = $this->getSearchConditionsString();
         $matchString    = "MATCH (" . $this->searchInstance->db->real_escape_string($this->searchFields) . ")";
@@ -406,10 +406,10 @@ class SearchQuery
         return $matchString;
     }
 
-    protected function addWhereConditions($select)
+    protected function addWhereConditions(SelectInterface $select): SelectInterface
     {
         $addWhereConditions = function ($value) use ($select) {
-            /* @var Aura\SqlQuery\Common\SelectInterface $select */
+            /* @var SelectInterface $select */
             $select->where($value);
         };
 
@@ -418,7 +418,7 @@ class SearchQuery
         return $select;
     }
 
-    public function composeCountQuery()
+    public function composeCountQuery(): string
     {
         $queryFactory   = new QueryFactory('mysql');
         $select         = $queryFactory->newSelect();
@@ -437,7 +437,7 @@ class SearchQuery
      *
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->compose();
     }
